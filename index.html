@@ -39,7 +39,7 @@
                 <!-- Indikator Sinkronisasi Otomatis Google Sheets -->
                 <div id="connection-status" class="flex items-center space-x-2 text-xs text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
                     <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse" id="status-dot"></span>
-                    <span id="status-text">Memuat database lokal...</span>
+                    <span id="status-text">Memuat database...</span>
                 </div>
             </div>
         </div>
@@ -78,7 +78,7 @@
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Tahun Pelajaran</label>
                         <div class="relative">
                             <i class="fa-solid fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <select id="search-tahun" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 bg-white font-semibold">
+                            <select id="search-tahun" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 bg-white font-semibold text-base">
                                 <!-- Opsi tahun pelajaran akan diisi secara dinamis melalui JS -->
                             </select>
                         </div>
@@ -89,7 +89,7 @@
                         <div class="relative">
                             <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="text" id="search-nama" oninput="this.value = this.value.toUpperCase()" placeholder="Contoh: AHMAD REZA FAHLEVI" 
-                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 placeholder-slate-400 font-semibold tracking-wide">
+                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 placeholder-slate-400 font-semibold tracking-wide text-base">
                         </div>
                         <!-- Catatan Kecil di bawah kotak isian Nama -->
                         <p class="text-[11px] text-slate-500 mt-1.5 px-1">
@@ -102,7 +102,7 @@
                         <div class="relative">
                             <i class="fa-solid fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="text" id="search-dob" maxlength="10" placeholder="HH/BB/TTTT (Contoh: 21/05/2014)" 
-                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 font-semibold tracking-wider">
+                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 font-semibold tracking-wider text-base">
                         </div>
                         <!-- Catatan Kecil di bawah kotak isian Tanggal Lahir -->
                         <p class="text-[11px] text-slate-500 mt-1.5 px-1">
@@ -380,6 +380,15 @@
 
     <!-- JavaScript Aplikasi -->
     <script>
+        // =========================================================================
+        // CONFIGURASI UTAMA LINK GOOGLE SHEETS CSV (SANGAT PENTING!)
+        // =========================================================================
+        // Masukkan URL CSV publik Google Sheets Anda di bawah ini agar semua perangkat
+        // (HP siswa, wali murid, dll.) bisa langsung sinkron secara otomatis saat dibuka!
+        // Contoh: "https://docs.google.com/spreadsheets/d/xxxxxx/pub?output=csv"
+        const SPREADSHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_HEtDND-lDUPSpZo6CBvuh3LqZc0qWIf9HhH-7_4CX1S3JXdEY5fCNAliDpw9aHnzQUuwRjlnuMTj/pub?output=csv"; 
+        // =========================================================================
+
         // Database awal siswa multibahasa & multi-tahun pelajaran
         const contohDataSiswa = [
             { nama: "AHMAD REZA FAHLEVI", tanggal_lahir: "2014-05-12", kelas: "6A", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
@@ -395,13 +404,13 @@
         let databaseSiswa = [];
 
         window.onload = function() {
-            // Memeriksa apakah ada link CSV Google Sheets yang pernah disimpan
-            const savedCSVLink = localStorage.getItem('tka_csv_link_global');
+            // Prioritaskan Link CSV Hardcoded di kode, lalu localStorage dari setting admin
+            const activeCSVLink = SPREADSHEET_CSV_URL || localStorage.getItem('tka_csv_link_global');
             
-            if (savedCSVLink) {
+            if (activeCSVLink) {
                 // Tampilkan status loading sinkronisasi otomatis
                 setConnectionStatus("loading", "Menghubungkan otomatis ke Google Sheets...");
-                autoLoadFromCSV(savedCSVLink);
+                autoLoadFromCSV(activeCSVLink);
             } else {
                 // Gunakan database lokal
                 const dataLokal = localStorage.getItem('tka_database_siswa_v4_global');
