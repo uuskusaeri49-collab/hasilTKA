@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Unduh Sertifikat TKA Kelas 6</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation (Bersih Tanpa Tab Publik) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-600 rounded-lg text-white">
+                        <i class="fa-solid fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg text-slate-900 block leading-tight">SDN 1 TANJUNGKARYA</span>
+                        <span class="text-xs text-slate-500 font-medium">Portal Sertifikat TKA Kelas 6</span>
+                    </div>
+                </div>
+                <!-- Indikator Sinkronisasi Otomatis Google Sheets -->
+                <div id="connection-status" class="flex items-center space-x-2 text-xs text-slate-400 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse" id="status-dot"></span>
+                    <span id="status-text">Memuat database lokal...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: AREA SISWA (PENCARIAN & UNDUH) -->
+        <section id="tab-siswa" class="space-y-8">
+            <!-- Hero Banner (Bersih Tanpa Label Tahun Statis) -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-[12rem] pointer-events-none">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        E-Sertifikat Resmi
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold mt-3 tracking-tight">Unduh Sertifikat Tes Kemampuan Akademik (TKA)</h1>
+                    <p class="mt-2 text-blue-100 text-sm sm:text-base leading-relaxed">
+                        Silakan pilih tahun ajaran kelulusan Anda, lalu masukkan nama lengkap beserta tanggal lahir untuk proses verifikasi pengambilan sertifikat digital.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Formulir Pencarian Ganda + Dropdown Tahun Pelajaran -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center">
+                    <span class="w-2 h-6 bg-blue-600 rounded-full mr-2.5"></span>
+                    Formulir Verifikasi Data Siswa
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <!-- Dropdown Tahun Pelajaran -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Tahun Pelajaran</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <select id="search-tahun" class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 bg-white font-semibold">
+                                <!-- Opsi tahun pelajaran akan diisi secara dinamis melalui JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Input Nama Lengkap -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Nama Lengkap Siswa</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="search-nama" oninput="this.value = this.value.toUpperCase()" placeholder="Contoh: AHMAD REZA FAHLEVI" 
+                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 placeholder-slate-400 font-semibold tracking-wide">
+                        </div>
+                        <!-- Catatan Kecil di bawah kotak isian Nama -->
+                        <p class="text-[11px] text-slate-500 mt-1.5 px-1">
+                            *Contoh pengisian: <span class="font-semibold text-slate-700">AHMAD REZA FAHLEVI</span> (Teks otomatis kapital)
+                        </p>
+                    </div>
+                    <!-- Input Tanggal Lahir (Ketik Manual dengan tanda /) -->
+                    <div class="relative">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Tanggal Lahir Siswa</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-calendar-days absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="search-dob" maxlength="10" placeholder="HH/BB/TTTT (Contoh: 21/05/2014)" 
+                                   class="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-800 font-semibold tracking-wider">
+                        </div>
+                        <!-- Catatan Kecil di bawah kotak isian Tanggal Lahir -->
+                        <p class="text-[11px] text-slate-500 mt-1.5 px-1">
+                            *Contoh pengisian: <span class="font-semibold text-slate-700">21/05/2014</span> (Ketik manual dengan tanda <span class="font-bold">/</span>)
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="cariSiswa()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-sm shadow-blue-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Verifikasi & Cari Sertifikat</span>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-blue-500 text-sm"></i>
+                    <span>Database dilindungi enkripsi. Pastikan data yang dimasukkan akurat dan cocok dengan data sekolah.</span>
+                </p>
+            </div>
+
+            <!-- Hasil Pencarian -->
+            <div id="search-result-container" class="hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-md font-bold text-slate-900 mb-4 uppercase tracking-wider text-xs flex items-center justify-between">
+                        <span>Hasil Pencarian Verifikasi</span>
+                        <span id="result-count" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[10px]"></span>
+                    </h3>
+                    
+                    <div id="search-results" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Kartu hasil pencarian di-render lewat JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="bg-slate-100 rounded-2xl p-6 border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-3"><i class="fa-solid fa-circle-question mr-2 text-blue-600"></i> Informasi & Bantuan</h3>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li class="flex items-start">
+                        <span class="text-blue-600 mr-2">•</span>
+                        <span>Sertifikat TKA ini berlaku sah secara digital sebagai bukti hasil Tes Kemampuan Akademik siswa kelas 6.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blue-600 mr-2">•</span>
+                        <span>Jika Anda mengalami kendala saat memverifikasi data diri, silakan tanyakan kepada Wali Kelas masing-masing.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+
+        <!-- TAB 2: ADMIN & INTEGRASI SPREADSHEET (SANGAT TERLINDUNGI) -->
+        <section id="tab-admin" class="hidden space-y-8">
+            <div class="bg-slate-900 text-white p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center"><i class="fa-solid fa-user-gear text-blue-400 mr-3"></i>Dashboard Pengelolaan Admin Portal</h2>
+                    <p class="text-xs text-slate-400 mt-1">Kelola seluruh data multi-tahun pelajaran langsung sinkron dengan Google Sheets.</p>
+                </div>
+                <button onclick="keluarAdmin()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i>Keluar Mode Admin
+                </button>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Panel Kiri: Integrasi Spreadsheet -->
+                <div class="w-full lg:w-2/3 space-y-6">
+                    
+                    <!-- Panduan Kolaborasi -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h2 class="text-xl font-bold text-slate-900 mb-2 flex items-center">
+                            <i class="fa-solid fa-file-excel text-green-600 mr-3"></i>
+                            Sinkronisasi Global Multi-Tahun
+                        </h2>
+                        <p class="text-sm text-slate-600 mb-4">
+                            Cukup lakukan satu kali sinkronisasi di bawah ini. Sistem akan otomatis mendeteksi, mengelompokkan, dan menampilkan daftar tahun pelajaran sesuai data yang Anda masukkan dari Google Sheets!
+                        </p>
+
+                        <!-- Pilihan Metode -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="border border-slate-200 hover:border-blue-500 rounded-xl p-4 cursor-pointer transition-all bg-slate-50" onclick="switchMethod('paste')">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="p-2 bg-blue-500 text-white rounded-lg text-sm">
+                                        <i class="fa-solid fa-paste"></i>
+                                    </div>
+                                    <h3 class="font-bold text-sm text-slate-800">Metode 1: Salin-Tempel (Copy Paste)</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    Salin seluruh tabel dari Excel/Google Sheets Anda (termasuk kolom Tahun Pelajaran), lalu tempelkan ke sini.
+                                </p>
+                            </div>
+
+                            <div class="border border-slate-200 hover:border-green-500 rounded-xl p-4 cursor-pointer transition-all bg-slate-50" onclick="switchMethod('link')">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="p-2 bg-green-500 text-white rounded-lg text-sm">
+                                        <i class="fa-solid fa-link"></i>
+                                    </div>
+                                    <h3 class="font-bold text-sm text-slate-800">Metode 2: Link Publik CSV Sheet</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 leading-relaxed">
+                                    Hubungkan link CSV Google Sheets utama Anda untuk melakukan sinkronisasi data seluruh angkatan secara instan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- PANEL INPUT METODE 1: PASTE -->
+                        <div id="method-paste-panel" class="space-y-4">
+                            <div class="bg-blue-50 p-3.5 rounded-xl border border-blue-100">
+                                <span class="text-xs font-bold text-blue-700 block mb-1">Format 5 kolom spreadsheet wajib berurutan:</span>
+                                <code class="text-xs text-blue-900 bg-white/75 px-2 py-1 rounded block overflow-x-auto whitespace-nowrap">
+                                    NAMA LENGKAP (A) | TANGGAL LAHIR (B) | TAHUN PELAJARAN (C) | KELAS (D) | LINK SERTIFIKAT (E)
+                                </code>
+                                <span class="text-[10px] text-blue-600 block mt-1.5">*Contoh Baris: <code class="font-bold">AHMAD REZA FAHLEVI [Tab] 12/05/2014 [Tab] 2025/2026 [Tab] 6A [Tab] http://link</code></span>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Tempelkan Data Hasil Copy dari Spreadsheet:</label>
+                                <textarea id="paste-input" rows="6" class="w-full p-3 text-sm font-mono border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="AHMAD REZA FAHLEVI	12/05/2014	2025/2026	6A	https://drive.google.com/file/d/xxxx1&#10;BELLA CITRA KIRANA	22/08/2014	2026/2027	6B	https://drive.google.com/file/d/xxxx2"></textarea>
+                            </div>
+                            <button onclick="prosesPaste()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>Perbarui & Sinkronisasi Seluruh Data</span>
+                            </button>
+                        </div>
+
+                        <!-- PANEL INPUT METODE 2: LINK -->
+                        <div id="method-link-panel" class="hidden space-y-4">
+                            <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 text-amber-900 text-xs space-y-2">
+                                <p class="font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Cara mendapatkan link CSV Google Sheets utama:</p>
+                                <ol class="list-decimal pl-4 space-y-1 text-amber-800">
+                                    <li>Buka dokumen Spreadsheet utama Anda.</li>
+                                    <li>Pastikan kolom berurutan: <strong class="bg-amber-100 px-1 rounded">Nama</strong>, <strong class="bg-amber-100 px-1 rounded">Tanggal Lahir</strong>, <strong class="bg-amber-100 px-1 rounded">Tahun Pelajaran</strong>, <strong class="bg-amber-100 px-1 rounded">Kelas</strong>, <strong class="bg-amber-100 px-1 rounded">Link</strong>.</li>
+                                    <li>Klik <strong class="bg-amber-100 px-1 rounded">File</strong> > <strong class="bg-amber-100 px-1 rounded">Bagikan</strong> > <strong class="bg-amber-100 px-1 rounded">Publikasikan ke web</strong>.</li>
+                                    <li>Pilih format <strong class="bg-amber-100 px-1 rounded">Nilai Terpisah Koma (.csv)</strong> dari seluruh dokumen/sheet yang sesuai, lalu klik Publikasikan.</li>
+                                    <li>Salin tautan yang dihasilkan Google Sheets dan tempel di bawah.</li>
+                                </ol>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Link CSV Google Sheets Utama:</label>
+                                <input type="url" id="csv-link-input" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" 
+                                       class="w-full px-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500">
+                            </div>
+                            <button onclick="prosesCSVLink()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                                <span>Mulai Sinkronisasi Realtime Seluruh Tahun</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Panel Kanan: Data Statistik & Pengendali -->
+                <div class="w-full lg:w-1/3 space-y-6">
+                    <!-- Status Database -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="font-bold text-slate-900 mb-4 flex items-center justify-between">
+                            <span>Status Database Sistem</span>
+                            <span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-0.5 rounded-full font-bold">Aktif</span>
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <span class="text-xs text-slate-500 block">Total Seluruh Siswa (Semua Angkatan)</span>
+                                <span id="stat-total" class="text-3xl font-extrabold text-blue-600">0</span>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <span class="text-xs text-slate-500 block">Jumlah Angkatan/Tahun Pelajaran Terdeteksi</span>
+                                <span id="stat-angkatan-count" class="text-2xl font-extrabold text-indigo-600">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Reset Data -->
+                        <div class="mt-6 pt-6 border-t border-slate-100 flex flex-col gap-2">
+                            <button onclick="muatDataDefault()" class="w-full text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 hover:bg-blue-100 py-2 rounded-lg transition-all text-center">
+                                Muat Data Contoh Bawaan
+                            </button>
+                            <button onclick="bersihkanDatabase()" class="w-full text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 py-2 rounded-lg transition-all text-center">
+                                Kosongkan Semua Database
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Notifikasi Aksi -->
+                    <div id="toast" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-start space-x-2.5">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm mt-0.5"></i>
+                        <div>
+                            <p class="font-bold" id="toast-title">Sukses!</p>
+                            <p class="text-emerald-700" id="toast-msg">Database berhasil diperbarui.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Tabel Data Siswa Aktif -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Daftar Data Siswa Terdaftar</h3>
+                        <p class="text-xs text-slate-500">Semua data angkatan siswa tersimpan rapi dalam satu tabel tunggal.</p>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <select id="admin-filter-tabel-tahun" onchange="renderAdminTabel()" class="text-xs border border-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                            <!-- Opsi filter tahun pelajaran diisi dinamis -->
+                        </select>
+                        <div class="relative flex-grow sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="admin-search" oninput="filterAdminTabel()" placeholder="Filter nama siswa..." 
+                                   class="w-full pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">No</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Lengkap</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Lahir</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tahun Pelajaran</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Kelas</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Link Sertifikat</th>
+                                <th class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="bg-white divide-y divide-slate-200 text-slate-700">
+                            <!-- Baris tabel di-render melalui JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Terlindungi -->
+    <footer class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <p class="font-semibold text-slate-200">Sistem Portal TKA &copy; 2026</p>
+                <p class="mt-0.5">Berfungsi penuh secara fleksibel menggunakan metode integrasi cloud database siswa.</p>
+            </div>
+            <div class="flex items-center space-x-6">
+                <!-- Tombol Rahasia Untuk Membuka Akses Admin -->
+                <button onclick="mintaAksesAdmin()" class="hover:text-slate-200 text-slate-500 transition-colors cursor-pointer flex items-center space-x-1 font-semibold">
+                    <i class="fa-solid fa-user-lock text-[10px]"></i>
+                    <span>Kelola Sistem (Admin)</span>
+                </button>
+                <span class="hover:text-white transition-colors cursor-pointer">Panduan Keamanan</span>
+                <span class="hover:text-white transition-colors cursor-pointer">Kontak Sekolah</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- PIN Modal Dialog Pengaman (PIN BARU SANGAT AMAN) -->
+    <div id="pin-modal" class="hidden fixed inset-0 bg-slate-950/75 z-50 flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm border border-slate-200 space-y-4">
+            <div class="text-center">
+                <div class="inline-flex p-3 bg-blue-50 text-blue-600 rounded-full mb-2">
+                    <i class="fa-solid fa-key text-xl"></i>
+                </div>
+                <h3 class="font-bold text-slate-900 text-lg">Keamanan Admin Portal</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Masukkan PIN pengaman baru untuk membuka panel pengelolaan.</p>
+            </div>
+            <div>
+                <input type="password" id="admin-pin-input" placeholder="Masukkan PIN Pengaman" 
+                       class="w-full text-center tracking-wider font-extrabold text-md px-3 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="tutupAksesModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition-all">Batal</button>
+                <button onclick="konfirmasiAksesAdmin()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl text-xs font-semibold transition-all">Verifikasi PIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Aplikasi -->
+    <script>
+        // Database awal siswa multibahasa & multi-tahun pelajaran
+        const contohDataSiswa = [
+            { nama: "AHMAD REZA FAHLEVI", tanggal_lahir: "2014-05-12", kelas: "6A", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
+            { nama: "BELLA CITRA KIRANA", tanggal_lahir: "2014-08-22", kelas: "6A", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
+            { nama: "DANISH ALVARO RIZKI", tanggal_lahir: "2014-11-05", kelas: "6A", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
+            { nama: "EVAN GERALDI", tanggal_lahir: "2014-02-14", kelas: "6B", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
+            { nama: "FARAH DIBA AMALIA", tanggal_lahir: "2014-07-30", kelas: "6B", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" },
+            { nama: "GADING ADITYA PUTRA", tanggal_lahir: "2014-10-18", kelas: "6B", link: "https://docs.google.com/viewer?url=https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", tahun_pelajaran: "2025/2026" }
+        ];
+
+        // Daftar tahun pelajaran yang dideteksi otomatis dari data
+        let daftarTahunPelajaran = ["2025/2026"];
+        let databaseSiswa = [];
+
+        window.onload = function() {
+            // Memeriksa apakah ada link CSV Google Sheets yang pernah disimpan
+            const savedCSVLink = localStorage.getItem('tka_csv_link_global');
+            
+            if (savedCSVLink) {
+                // Tampilkan status loading sinkronisasi otomatis
+                setConnectionStatus("loading", "Menghubungkan otomatis ke Google Sheets...");
+                autoLoadFromCSV(savedCSVLink);
+            } else {
+                // Gunakan database lokal
+                const dataLokal = localStorage.getItem('tka_database_siswa_v4_global');
+                if (dataLokal) {
+                    databaseSiswa = JSON.parse(dataLokal);
+                    setConnectionStatus("success", "Database lokal aktif (Offline)");
+                } else {
+                    databaseSiswa = [...contohDataSiswa];
+                    simpanKeLokal();
+                    setConnectionStatus("info", "Menggunakan data contoh bawaan");
+                }
+                selesaikanInisialisasi();
+            }
+        };
+
+        // Fungsi bantu memperbarui indikator status sinkronisasi di header
+        function setConnectionStatus(type, message) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            const statusBox = document.getElementById('connection-status');
+
+            text.textContent = message;
+
+            if (type === "loading") {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping";
+                statusBox.className = "flex items-center space-x-2 text-xs text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200";
+            } else if (type === "success") {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                statusBox.className = "flex items-center space-x-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200";
+            } else if (type === "error") {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+                statusBox.className = "flex items-center space-x-2 text-xs text-rose-700 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-200";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-blue-500";
+                statusBox.className = "flex items-center space-x-2 text-xs text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200";
+            }
+        }
+
+        // Jalankan render setelah memuat data
+        function selesaikanInisialisasi() {
+            ekstrakDaftarTahun();
+            refreshTahunDropdowns();
+            renderStats();
+            renderAdminTabel();
+        }
+
+        // Sinkronisasi data otomatis dari Google Sheets pada saat startup halaman dibuka
+        async function autoLoadFromCSV(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Koneksi gagal.");
+                
+                const dataMentah = await response.text();
+                const baris = dataMentah.split('\n');
+                
+                const dataTerurai = [];
+                for (let i = 1; i < baris.length; i++) {
+                    const line = baris[i].trim();
+                    if (line) {
+                        const kolom = parseCSVLine(line);
+                        if (kolom.length >= 5) {
+                            const tglLahirNormal = normalisasiTanggal(kolom[1].replace(/"/g, '').trim());
+                            dataTerurai.push({
+                                nama: kolom[0].replace(/"/g, '').trim().toUpperCase(),
+                                tanggal_lahir: tglLahirNormal,
+                                tahun_pelajaran: kolom[2].replace(/"/g, '').trim(),
+                                kelas: kolom[3].replace(/"/g, '').trim().toUpperCase(),
+                                link: kolom[4].replace(/"/g, '').trim()
+                            });
+                        }
+                    }
+                }
+
+                if (dataTerurai.length > 0) {
+                    databaseSiswa = dataTerurai;
+                    simpanKeLokal();
+                    setConnectionStatus("success", `Google Sheets Terhubung (${dataTerurai.length} Siswa)`);
+                } else {
+                    setConnectionStatus("error", "Data Google Sheets kosong");
+                }
+            } catch (error) {
+                console.error("Gagal sinkronisasi latar belakang:", error);
+                // Fallback ke penyimpanan lokal jika koneksi internet terputus
+                const dataLokal = localStorage.getItem('tka_database_siswa_v4_global');
+                if (dataLokal) {
+                    databaseSiswa = JSON.parse(dataLokal);
+                    setConnectionStatus("error", "Gagal sinkronisasi. Memuat data lokal.");
+                } else {
+                    databaseSiswa = [...contohDataSiswa];
+                    setConnectionStatus("error", "Koneksi terputus. Menggunakan data default.");
+                }
+            }
+            selesaikanInisialisasi();
+        }
+
+        // Menyimpan data ke localStorage
+        function simpanKeLokal() {
+            localStorage.setItem('tka_database_siswa_v4_global', JSON.stringify(databaseSiswa));
+        }
+
+        // Ekstrak otomatis daftar tahun pelajaran yang unik dari data yang diinputkan
+        function ekstrakDaftarTahun() {
+            if (databaseSiswa.length === 0) {
+                daftarTahunPelajaran = ["2025/2026"];
+                return;
+            }
+            const setTahun = new Set();
+            databaseSiswa.forEach(s => {
+                if (s.tahun_pelajaran) {
+                    setTahun.add(s.tahun_pelajaran.trim());
+                }
+            });
+            daftarTahunPelajaran = Array.from(setTahun).sort();
+            if (daftarTahunPelajaran.length === 0) {
+                daftarTahunPelajaran = ["2025/2026"];
+            }
+        }
+
+        // Memperbarui isi dropdown Tahun Pelajaran di seluruh halaman secara dinamis
+        function refreshTahunDropdowns() {
+            const searchTahunSelect = document.getElementById('search-tahun');
+            const adminFilterTabelSelect = document.getElementById('admin-filter-tabel-tahun');
+
+            const valSearch = searchTahunSelect.value;
+
+            searchTahunSelect.innerHTML = '';
+            adminFilterTabelSelect.innerHTML = '<option value="SEMUA">Semua Tahun Pelajaran</option>';
+
+            daftarTahunPelajaran.forEach(thn => {
+                searchTahunSelect.innerHTML += `<option value="${thn}">${thn}</option>`;
+                adminFilterTabelSelect.innerHTML += `<option value="${thn}">Tahun Pelajaran ${thn}</option>`;
+            });
+
+            if (daftarTahunPelajaran.includes(valSearch)) {
+                searchTahunSelect.value = valSearch;
+            }
+        }
+
+        // Buka / Tutup Modal Akses Admin PIN
+        function mintaAksesAdmin() {
+            document.getElementById('pin-modal').classList.remove('hidden');
+            document.getElementById('admin-pin-input').focus();
+        }
+
+        function tutupAksesModal() {
+            document.getElementById('pin-modal').classList.add('hidden');
+            document.getElementById('admin-pin-input').value = '';
+        }
+
+        // Verifikasi PIN Pengaman (PIN Baru: Agan12345??!!)
+        function konfirmasiAksesAdmin() {
+            const pin = document.getElementById('admin-pin-input').value.trim();
+            if (pin === "Agan12345??!!") {
+                tutupAksesModal();
+                switchTab('admin');
+                
+                // Tempelkan link CSV tersimpan ke kolom input admin jika sudah ada
+                const savedCSVLink = localStorage.getItem('tka_csv_link_global');
+                if (savedCSVLink) {
+                    document.getElementById('csv-link-input').value = savedCSVLink;
+                }
+                
+                showToast("Akses Diterima", "Berhasil masuk ke mode konfigurasi admin.", "success");
+            } else {
+                showToast("Akses Ditolak", "PIN Pengaman salah! Mohon verifikasi kembali PIN Anda.", "error");
+            }
+        }
+
+        // Keluar Mode Admin
+        function keluarAdmin() {
+            switchTab('siswa');
+            showToast("Keluar", "Anda telah keluar dari mode pengelolaan admin.");
+        }
+
+        // Beralih Tab Halaman
+        function switchTab(tab) {
+            const tabSiswa = document.getElementById('tab-siswa');
+            const tabAdmin = document.getElementById('tab-admin');
+
+            if (tab === 'siswa') {
+                tabSiswa.classList.remove('hidden');
+                tabAdmin.classList.add('hidden');
+            } else {
+                tabSiswa.classList.add('hidden');
+                tabAdmin.classList.remove('hidden');
+                renderAdminTabel();
+            }
+        }
+
+        // Beralih Metode Input di Admin
+        function switchMethod(method) {
+            const panelPaste = document.getElementById('method-paste-panel');
+            const panelLink = document.getElementById('method-link-panel');
+
+            if (method === 'paste') {
+                panelPaste.classList.remove('hidden');
+                panelLink.classList.add('hidden');
+            } else {
+                panelPaste.classList.add('hidden');
+                panelLink.classList.remove('hidden');
+            }
+        }
+
+        // Format tanggal dari YYYY-MM-DD ke tampilan lokal yang rapi (Contoh: 12 Mei 2014)
+        function formatTampilanTanggal(tanggalStr) {
+            if (!tanggalStr) return "-";
+            const parts = tanggalStr.split('-');
+            if (parts.length !== 3) return tanggalStr;
+            
+            const bulanIndo = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            
+            const tahun = parts[0];
+            const bulan = parseInt(parts[1], 10) - 1;
+            const hari = parseInt(parts[2], 10);
+            
+            if (bulan >= 0 && bulan < 12) {
+                return `${hari} ${bulanIndo[bulan]} ${tahun}`;
+            }
+            return tanggalStr;
+        }
+
+        // Menyamakan/Normalisasi Format Tanggal menjadi YYYY-MM-DD
+        function normalisasiTanggal(tanggalInput) {
+            if (!tanggalInput) return "";
+            let tgl = tanggalInput.trim().replace(/\//g, '-'); // Ganti / dengan -
+
+            // Jika format DD-MM-YYYY (Contoh: 12-05-2014)
+            const regexDMY = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
+            const matchDMY = tgl.match(regexDMY);
+            if (matchDMY) {
+                const hari = matchDMY[1].padStart(2, '0');
+                const bulan = matchDMY[2].padStart(2, '0');
+                const tahun = matchDMY[3];
+                return `${tahun}-${bulan}-${hari}`;
+            }
+
+            // Jika sudah format YYYY-MM-DD (Contoh: 2014-05-12)
+            const regexYMD = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+            const matchYMD = tgl.match(regexYMD);
+            if (matchYMD) {
+                const tahun = matchYMD[1];
+                const bulan = matchYMD[2].padStart(2, '0');
+                const hari = matchYMD[3].padStart(2, '0');
+                return `${tahun}-${bulan}-${hari}`;
+            }
+
+            return tgl; // Kembalikan apa adanya jika tidak cocok
+        }
+
+        // Mencari siswa di Tab Siswa (PENCARIAN UTAMA - Menggunakan format DD/MM/YYYY dari input)
+        function cariSiswa() {
+            const inputTahun = document.getElementById('search-tahun').value;
+            const inputNama = document.getElementById('search-nama').value.trim().toLowerCase();
+            const rawDOB = document.getElementById('search-dob').value.trim(); // Mengembalikan format DD/MM/YYYY
+
+            const container = document.getElementById('search-result-container');
+            const resultsDiv = document.getElementById('search-results');
+            const countSpan = document.getElementById('result-count');
+
+            if (!inputNama || !rawDOB) {
+                showToast("Pencarian Gagal", "Nama Lengkap dan Tanggal Lahir harus diisi semuanya!", "error");
+                return;
+            }
+
+            // Normalisasi input DOB ke YYYY-MM-DD agar sama dengan format penyimpanan database
+            const inputDOBNormalized = normalisasiTanggal(rawDOB);
+
+            // Cari kecocokan data
+            const hasilFilter = databaseSiswa.filter(siswa => {
+                const tahunCocok = (siswa.tahun_pelajaran === inputTahun);
+                const namaCocok = siswa.nama.toLowerCase().includes(inputNama);
+                const dobCocok = (siswa.tanggal_lahir === inputDOBNormalized);
+                return tahunCocok && namaCocok && dobCocok;
+            });
+
+            // Bersihkan hasil sebelumnya
+            resultsDiv.innerHTML = '';
+            container.classList.remove('hidden');
+            countSpan.textContent = `${hasilFilter.length} diverifikasi`;
+
+            if (hasilFilter.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="col-span-full py-8 text-center bg-slate-50 border border-dashed border-slate-300 rounded-xl">
+                        <i class="fa-regular fa-face-frown text-4xl text-slate-300 mb-3"></i>
+                        <p class="font-bold text-slate-700 text-sm">Siswa Tidak Ditemukan</p>
+                        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                            Mohon pastikan Tahun Pelajaran, penulisan Nama Lengkap, dan Tanggal Lahir sudah benar serta terdaftar di data kelulusan sekolah.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render hasil verifikasi sukses
+            hasilFilter.forEach(siswa => {
+                resultsDiv.innerHTML += `
+                    <div class="border border-emerald-100 bg-emerald-50/40 p-5 rounded-xl hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group border-2">
+                        <div class="absolute right-4 top-4 text-3xl text-emerald-600 opacity-20 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-1.5 mb-2">
+                                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    TA ${siswa.tahun_pelajaran}
+                                </span>
+                                <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Kelas ${siswa.kelas}
+                                </span>
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Terverifikasi
+                                </span>
+                            </div>
+                            <h4 class="font-extrabold text-slate-900 text-md uppercase tracking-tight">${siswa.nama}</h4>
+                            <p class="text-xs text-slate-600 mt-1">Lahir: <span class="font-medium">${formatTampilanTanggal(siswa.tanggal_lahir)}</span></p>
+                        </div>
+                        <div class="mt-6">
+                            <a href="${siswa.link}" target="_blank" 
+                               class="w-full inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs transition-all shadow-sm">
+                                <i class="fa-solid fa-download mr-1.5"></i> Unduh Sertifikat Resmi (PDF)
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // METODE 1: Proses Data dari Tempelan Copy Paste Spreadsheet (Global Multi-Tahun)
+        function prosesPaste() {
+            const rawText = document.getElementById('paste-input').value.trim();
+            if (!rawText) {
+                showToast("Gagal", "Kotak teks input masih kosong!", "error");
+                return;
+            }
+
+            const baris = rawText.split('\n');
+            const dataBaru = [];
+
+            baris.forEach((barisSiswa, indeks) => {
+                const kolom = barisSiswa.split('\t');
+                
+                // Format minimal harus ada NAMA (0), TANGGAL LAHIR (1), TAHUN PELAJARAN (2), KELAS (3), LINK SERTIFIKAT (4)
+                if (kolom.length >= 5) {
+                    const tglLahirNormal = normalisasiTanggal(kolom[1]);
+                    dataBaru.push({
+                        nama: kolom[0].trim().toUpperCase(),
+                        tanggal_lahir: tglLahirNormal,
+                        tahun_pelajaran: kolom[2].trim(),
+                        kelas: kolom[3].trim().toUpperCase(),
+                        link: kolom[4].trim()
+                    });
+                }
+            });
+
+            if (dataBaru.length === 0) {
+                showToast("Peringatan", "Format data tidak sesuai. Pastikan Anda menyalin minimal 5 kolom dari Spreadsheet (Nama, Tanggal Lahir, Tahun Pelajaran, Kelas, Link).", "error");
+                return;
+            }
+
+            // Hapus link CSV tersimpan jika beralih kembali ke input manual/salin-tempel
+            localStorage.removeItem('tka_csv_link_global');
+            setConnectionStatus("success", "Database lokal aktif (Offline)");
+
+            // Ganti seluruh database lokal dengan data sinkronisasi terbaru
+            databaseSiswa = dataBaru;
+            simpanKeLokal();
+            ekstrakDaftarTahun();
+            refreshTahunDropdowns();
+            renderStats();
+            renderAdminTabel();
+            showToast("Sukses!", `Berhasil melakukan sinkronisasi menyeluruh sebanyak ${dataBaru.length} data siswa.`);
+            document.getElementById('paste-input').value = '';
+        }
+
+        // METODE 2: Menghubungkan Link CSV Publik Google Sheets (Satu Kali Sinkronisasi Realtime)
+        async function prosesCSVLink() {
+            const url = document.getElementById('csv-link-input').value.trim();
+
+            if (!url) {
+                showToast("Gagal", "Silakan masukkan url csv publik yang valid!", "error");
+                return;
+            }
+
+            if (!url.includes('/pub?output=csv') && !url.includes('docs.google.com/spreadsheets')) {
+                showToast("Gagal", "Tautan salah. Pastikan Anda mempublikasikan Google Sheets sebagai file CSV.", "error");
+                return;
+            }
+
+            try {
+                showToast("Mengunduh", "Sedang mengunduh seluruh data dari Sheets...", "info");
+                setConnectionStatus("loading", "Menghubungkan otomatis ke Google Sheets...");
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Gagal mengambil data.");
+                
+                const dataMentah = await response.text();
+                const baris = dataMentah.split('\n');
+                
+                const dataTerurai = [];
+                // Mulai dari baris ke-2 (Baris 1 = Header)
+                for (let i = 1; i < baris.length; i++) {
+                    const line = baris[i].trim();
+                    if (line) {
+                        const kolom = parseCSVLine(line);
+                        if (kolom.length >= 5) {
+                            const tglLahirNormal = normalisasiTanggal(kolom[1].replace(/"/g, '').trim());
+                            dataTerurai.push({
+                                nama: kolom[0].replace(/"/g, '').trim().toUpperCase(),
+                                tanggal_lahir: tglLahirNormal,
+                                tahun_pelajaran: kolom[2].replace(/"/g, '').trim(),
+                                kelas: kolom[3].replace(/"/g, '').trim().toUpperCase(),
+                                link: kolom[4].replace(/"/g, '').trim()
+                            });
+                        }
+                    }
+                }
+
+                if (dataTerurai.length > 0) {
+                    // Simpan URL Google Sheets CSV secara permanen agar otomatis diload pada startup berikutnya
+                    localStorage.setItem('tka_csv_link_global', url);
+
+                    databaseSiswa = dataTerurai;
+                    simpanKeLokal();
+                    ekstrakDaftarTahun();
+                    refreshTahunDropdowns();
+                    renderStats();
+                    renderAdminTabel();
+                    setConnectionStatus("success", `Google Sheets Terhubung (${dataTerurai.length} Siswa)`);
+                    showToast("Sukses Sinkron!", `Tautan CSV berhasil disimpan dan disinkronkan secara permanen!`);
+                } else {
+                    showToast("Kosong", "Tidak ditemukan data siswa yang dapat diproses di file CSV.", "error");
+                    setConnectionStatus("error", "Data Google Sheets kosong");
+                }
+
+            } catch (error) {
+                showToast("Koneksi Gagal", "Gagal memproses data. Pastikan status Google Sheets Anda sudah Terbuka Publik.", "error");
+                setConnectionStatus("error", "Gagal menghubungkan Google Sheets");
+                console.error(error);
+            }
+        }
+
+        // Helper parser baris CSV aman
+        function parseCSVLine(text) {
+            let p = false, a = [];
+            let item = '';
+            for (let c of text) {
+                if (c === '"') p = !p;
+                else if (c === ',' && !p) {
+                    a.push(item);
+                    item = '';
+                } else item += c;
+            }
+            a.push(item);
+            return a;
+        }
+
+        // Render Statistik Data
+        function renderStats() {
+            document.getElementById('stat-total').textContent = databaseSiswa.length;
+            document.getElementById('stat-angkatan-count').textContent = daftarTahunPelajaran.length;
+        }
+
+        // Render Tabel Data Admin
+        function renderAdminTabel() {
+            const body = document.getElementById('admin-table-body');
+            const filterTahun = document.getElementById('admin-filter-tabel-tahun').value;
+            const cariNama = document.getElementById('admin-search').value.toLowerCase();
+            body.innerHTML = '';
+
+            const filteredData = databaseSiswa.filter(siswa => {
+                const cocokTahun = (filterTahun === "SEMUA" || siswa.tahun_pelajaran === filterTahun);
+                const cocokNama = siswa.nama.toLowerCase().includes(cariNama) || siswa.kelas.toLowerCase().includes(cariNama);
+                return cocokTahun && cocokNama;
+            });
+
+            if (filteredData.length === 0) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-slate-400">
+                            Tidak ada data siswa ditemukan untuk filter saat ini.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filteredData.forEach((siswa, index) => {
+                body.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-3 whitespace-nowrap text-xs text-slate-400">${index + 1}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs font-bold text-slate-900">${siswa.nama}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs font-semibold text-slate-700">${formatTampilanTanggal(siswa.tanggal_lahir)}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs"><span class="bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded-full font-bold">${siswa.tahun_pelajaran}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs"><span class="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">${siswa.kelas}</span></td>
+                        <td class="px-6 py-3 whitespace-nowrap text-xs text-blue-500 max-w-xs truncate">
+                            <a href="${siswa.link}" target="_blank" class="hover:underline flex items-center">
+                                <i class="fa-solid fa-link mr-1"></i> ${siswa.link}
+                            </a>
+                        </td>
+                        <td class="px-6 py-3 whitespace-nowrap text-right text-xs">
+                            <button onclick="hapusSatuSiswa('${siswa.nama}', '${siswa.tahun_pelajaran}')" class="text-rose-500 hover:text-rose-700 transition-colors">
+                                <i class="fa-regular fa-trash-can"></i> Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Filter tabel data di sisi admin
+        function filterAdminTabel() {
+            renderAdminTabel();
+        }
+
+        // Hapus satu data siswa
+        function hapusSatuSiswa(nama, tahun) {
+            databaseSiswa = databaseSiswa.filter(s => !(s.nama === nama && s.tahun_pelajaran === tahun));
+            simpanKeLokal();
+            ekstrakDaftarTahun();
+            refreshTahunDropdowns();
+            renderStats();
+            renderAdminTabel();
+            showToast("Terhapus", "Satu data siswa berhasil dihapus.");
+        }
+
+        // Kembalikan Data Default (Simulator TKA)
+        function muatDataDefault() {
+            databaseSiswa = [...contohDataSiswa];
+            localStorage.removeItem('tka_csv_link_global'); // Bersihkan tautan otomatis saat reset
+            simpanKeLokal();
+            ekstrakDaftarTahun();
+            refreshTahunDropdowns();
+            renderStats();
+            renderAdminTabel();
+            setConnectionStatus("info", "Menggunakan data contoh bawaan");
+            showToast("Kembali Default", "Dataset contoh bawaan berhasil dipulihkan.");
+        }
+
+        // Bersihkan seluruh database di browser
+        function bersihkanDatabase() {
+            databaseSiswa = [];
+            localStorage.removeItem('tka_csv_link_global'); // Hapus tautan CSV otomatis
+            simpanKeLokal();
+            ekstrakDaftarTahun();
+            refreshTahunDropdowns();
+            renderStats();
+            renderAdminTabel();
+            setConnectionStatus("error", "Database kosong (Offline)");
+            showToast("Database Kosong", "Semua data siswa berhasil dibersihkan.", "error");
+        }
+
+        // Memunculkan Toast Pemberitahuan
+        function showToast(judul, pesan, jenis = 'success') {
+            const toast = document.getElementById('toast');
+            const title = document.getElementById('toast-title');
+            const msg = document.getElementById('toast-msg');
+
+            title.textContent = judul;
+            msg.textContent = pesan;
+
+            if (jenis === 'success') {
+                toast.className = "mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-start space-x-2.5";
+            } else if (jenis === 'info') {
+                toast.className = "mt-4 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl text-xs flex items-start space-x-2.5";
+            } else {
+                toast.className = "mt-4 bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs flex items-start space-x-2.5";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
